@@ -1,0 +1,1096 @@
+01/12
+Lab1
+
+ssh-keygen -t rsa
+#Dont change the name and path of private key, just enter
+#don't proivde passprase, enter it
+
+cat /home/user/.ssh/id_rsa.pub
+
+#copy the keys
+
+-->gitlab-->userprofile-->prefrences-->sshkey (Add sshkey)
+
+-->go to the project-->click on code-->ssh clone type
+
+git clone <ssh url>
+
+https://www.openwriteup.com/?page_id=1081g
+
+
+https://github.com/amitopenwriteup/gitlab-training/blob/main/Lab%202.pdf
+
+Lab2:
+    
+cd <repo>
+touch abc
+git status
+git add abc
+git status
+git commit -m "solving issue"
+git branch -M main
+git push origin main
+
+Lab 3
+
+https://www.openwriteup.com/?page_id=1325
+
+lab 4
+https://github.com/amitopenwriteup/gitlab-training/blob/main/Lab%204.pdf
+
+Lab 5
+
+https://github.com/amitopenwriteup/gitlab-training/blob/main/Lab%205.pdf
+
+Lab 6
+
+https://github.com/amitopenwriteup/gitlab-training/blob/main/Lab%206.pdf
+
+Lab7 (run on gitlab.com)--> .gitlab-ci.yml
+
+image: debian:latest
+stages:
+  - prepare
+prepare-job:
+  stage: prepare
+  script:
+    - echo "Preparing environment..."
+unit-tests:
+  stage: prepare
+  script:
+    - echo "Running unit tests..."
+    - curl --version
+
+----
+02/12
+
+image: debian:latest
+stages:
+  - prepare
+  - test
+  - deploy
+before_script:
+  - echo "Global setup starting..."
+  - apt-get update -y
+  - apt-get install -y curl
+  - echo "Global setup done."
+prepare-job:
+  stage: prepare
+  script:
+    - echo "Preparing environment..."
+unit-tests:
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - curl --version
+integration-tests:
+  stage: test
+  script:
+    - echo "Running integration tests..."
+    - curl https://example.com
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+
+
+Lab2:
+
+https://docs.docker.com/engine/install/ubuntu/
+ 
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+ 
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+    
+    
+2.sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+Create another project runner-->dockerrunner
+
+Register runner-->on to the linux machine-->docker executor-->debian
+
+-->start the runner
+
+job1:
+    tags:
+        - dockerrunner
+    script:
+        - echo "hello"
+
+Lab 3
+
+stages:
+  - prepare
+  - test
+  - deploy
+
+before_script:
+  - echo "Global setup starting..."
+  - apt-get update -y
+  - apt-get install -y curl
+  - echo "Global setup done."
+
+prepare-job:
+  stage: prepare
+  tags:
+    - dockerrunner
+  script:
+    - echo "Preparing environment..."
+
+unit-tests:
+  stage: test
+  tags:
+    - shellrunner
+  script:
+    - echo "Running unit tests on shell runner..."
+    - curl --version
+
+integration-tests:
+  stage: test
+  tags:
+    - dockerrunner
+  script:
+    - echo "Running integration tests on shell runner..."
+    - curl https://example.com
+
+deploy-job:
+  stage: deploy
+  tags:
+    - dockerrunner
+  script:
+    - echo "Deploying application on docker runner..."
+
+Lab 4
+
+stages:
+  - prepare
+  - test
+  - deploy
+prepare-job:
+  stage: prepare
+  tags:
+    - dockerrunner
+  script:
+    - echo "Preparing environment..."
+unit-tests:
+  stage: test
+  tags:
+    - shellrunner
+  before_script:
+    - echo "Shell runner specific setup..."
+    - apt-get update -y
+    - apt-get install -y curl
+    - echo "Shell runner setup done."
+  script:
+    - echo "Running unit tests on shell runner..."
+    - curl --version
+integration-tests:
+  stage: test
+  tags:
+    - dockerrunner
+  before_script:
+    - echo "Shell runner specific setup..."
+    - apt-get update -y
+    - apt-get install -y curl
+    - echo "Shell runner setup done."    
+  script:
+    - echo "Running integration tests on docker runner..."
+    - curl https://example.com
+deploy-job:
+  stage: deploy
+  tags:
+    - dockerrunner
+  script:
+    - echo "Deploying application on docker runner..."
+    
+    
+Lab 5
+
+
+ Running Multiple Runners with Separate Config Files
+By default, all runners use /etc/gitlab-runner/config.toml. To use separate configs, create multiple runner services.
+ Create Multiple Runner Services (Linux/Ubuntu)
+A) Shell Runner with Custom Config
+1. Create config directory:
+sudo mkdir -p /etc/gitlab-runner-shell
+2. Install the service:
+sudo gitlab-runner install \
+  --service gitlab-runner-shell \
+  --config /etc/gitlab-runner-shell/config.toml \
+  --user gitlab-runner \
+  --working-directory /home/gitlab-runner
+3. Register the runner:
+sudo gitlab-runner register \
+  --config /etc/gitlab-runner-shell/config.toml \
+  --non-interactive \
+  --url "http://10.32.2.35 " \
+  --token "glrt-6uWkMQf9cgQa6tbguSD_a286MQpwOjEKdDozCnU6MQ8.01.171oz2lph" \
+  --executor "shell" \
+  --description "shell-runner"
+4. Start the service:
+sudo gitlab-runner run --config /etc/gitlab-runner-shell/config.toml
+
+
+B) Docker Runner with Custom Config
+1. Create config directory:
+sudo mkdir -p /etc/gitlab-runner-docker
+2. Install the service:
+sudo gitlab-runner install \
+  --service gitlab-runner-docker \
+  --config /etc/gitlab-runner-docker/config.toml \
+  --user gitlab-runner \
+  --working-directory /home/gitlab-runner
+3. Register the runner:
+sudo gitlab-runner register \
+  --config /etc/gitlab-runner-docker/config.toml \
+  --non-interactive \
+  --url "https://gitlab.com/" \
+  --token "YOUR_DOCKER_TOKEN" \
+  --executor "docker" \
+  --docker-image "alpine:latest" \
+  --docker-privileged \
+  --description "docker-runner" \
+4. Start the service:
+sudo gitlab-runner run --config /etc/gitlab-runner-docker/config.toml
+
+
+ 
+Managing Your Runners
+# List all runners
+sudo gitlab-runner list
+ 
+# Stop a specific service
+sudo gitlab-runner stop --config /etc/gitlab-runner-shell/config.toml
+ 
+# Restart a specific service
+sudo gitlab-runner restart --config /etc/gitlab-runner-docker/config.toml
+ 
+# Unregister a runner
+sudo gitlab-runner unregister --config /etc/gitlab-runner-shell/config.toml --all-runners
+ 
+# Uninstall a service
+sudo gitlab-runner uninstall --service gitlab-runner-shell
+
+🧪 Using Runners in .gitlab-ci.yml
+stages:
+  - build
+  - test
+ 
+build-docker:
+  stage: build
+  tags:
+    - docker
+  script:
+    - echo "Running in Docker container"
+    - docker --version
+ 
+test-shell:
+  stage: test
+  tags:
+    - shell
+  script:
+    - echo "Running on shell executor"
+    - pwd
+    - whoami
+
+Lab 6:(selfhosted)
+    
+stages:
+  - hello
+say-hello:
+  stage: hello
+  tags:
+    - myrunner
+  before_script:
+    - apt-get update -y
+    - apt-get install -y cowsay
+  script:
+    - /usr/games/cowsay "hello from GitLab CI" > output.txt
+  artifacts:
+    paths:
+      - output.txt
+    expire_in: 1 hour
+  after_script:
+    - apt-get remove -y cowsay 
+    
+Lab 7(gitlab.com)
+
+image: debian:latest
+
+stages:
+  - prepare
+  - test
+  - deploy
+
+before_script:
+  - echo "Global setup starting..."
+  - apt-get update -y
+  - apt-get install -y curl
+  - echo "Global setup done."
+  - date
+
+prepare-job:
+  stage: prepare
+  script:
+    - echo "Preparing environment..."
+
+unit-tests:
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - curl --version
+    - echo "Oops, something went wrong"
+    - exit 1 
+  needs:
+    - job: prepare-job
+
+integration-tests:
+  stage: test
+  script:
+    - echo "Running integration tests..."
+    - curl https://example.com
+  needs:
+    - job: unit-tests
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+  needs:
+    - job: integration-tests
+
+##shell runner
+sudo apt install vim
+sudo vim /etc/sudoers
+gitlab-runner ALL=(ALL) NOPASSWD: ALL
+#esc :wq!
+sudo gitlab-runner run
+
+
+Lab 8 and 9)gitlab.com
+ 
+Import the project:
+    
+https://github.com/hellokaton/java11-examples.git
+ 
+.gitlab-ci.yml
+
+image: maven:3.9.6-eclipse-temurin-11
+stages:
+  - build
+  - publish
+build:
+  stage: build
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 hour
+publish:
+  stage: publish
+  script:
+    - echo "Publishing step placeholder. Add deployment or artifact upload here."
+    
+ 
+2) Self-hosted/gitlab.com -->Runner
+ 
+Project-->setting-->CICD-->Runner-->Enable runner for this project
+ 
+stages:
+  - build
+build-job:
+  stage: build
+  tags:
+    - shellrunner
+  before_script:
+      - sudo apt-get update
+      - sudo apt-get install -y openjdk-21-jdk
+      - sudo apt-get install -y maven 
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 hour
+ 
+
+Lab 10
+
+#modify .gitlab-ci.yml file in java project
+
+stages:
+  - build
+  - publish
+
+build:
+  image: maven # Explicit maven image with Java
+  stage: build
+  tags:
+    - myrunner
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 hour
+
+publish:
+  stage: publish
+  tags:
+    - myrunner
+  needs: [build]        # Preferable for dependencies in new GitLab CI
+  script:
+    - echo "Publishing step placeholder. Add deployment or artifact upload here."
+    # Example: scp target/*.jar user@host:/path/
+    
+    
+    Lab 11
+    
+    Create a new repo: cicd
+ 
+1) Create a python file: app.py
+ 
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0',port=8080)
+ 
+2) Create a dockerfile: dockerfile
+ 
+FROM python:3.9-alpine
+WORKDIR /flask_app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pytest
+EXPOSE 8080
+COPY app.py .
+CMD [ "python", "app.py" ]
+ 
+3) Create a requirements.txt file
+ 
+Flask==3.1.0
+ 
+4) Create PAT
+ 
+On the left sidebar, select your avatar.
+ 
+Select Edit profile.
+ 
+On the left sidebar, select Access tokens.
+ 
+Select Add new token.
+ 
+In Token name, enter a name for the token.
+ 
+Optional. In Token description, enter a description for the token.
+ 
+In Expiration date, enter an expiration date for the token.
+ 
+ 
+Select the desired scopes.api, read and write registry
+ 
+Select Create personal access token.
+ 
+5)Reminder for GitLab CI/CD Variables:
+Go to Project Settings > CI/CD > Variables and add:
+ 
+Key        Value
+CI_REGISTRY_USER        Your GitLab username
+CI_REGISTRY_PASSWORD        Your GitLab personal access token with api and readm write_registry scopes
+
+Registry info;
+
+Deploy-->container registry-->get the path
+ 
+4) now create a .gitlab-ci.yml file build the package and publish to GitLab registry
+ 
+stages:
+  - build
+ 
+variables:
+  DOCKERFILE: "dockerfile"      # Dockerfile path
+  REGISTRY: "registry.gitlab.com/tejipatil14-group/cicd" # GitLab registry
+  IMAGE_NAME: "myimage"
+  IMAGE_TAG: "latest"
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_TLS_CERTDIR: ""
+ 
+build_docker_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "Logging into Docker registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.gitlab.com -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - echo "Building Docker image..."
+    - docker build -f $DOCKERFILE -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
+    - docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+  only:
+    - main
+    
+---------------
+Lab 12: Self hosted
+
+Create a new repo: cicd
+ 
+1) Create a python file: app.py
+ 
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0',port=8080)
+ 
+2) Create a dockerfile: dockerfile
+ 
+FROM python:3.9-alpine
+WORKDIR /flask_app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pytest
+EXPOSE 8080
+COPY app.py .
+CMD [ "python", "app.py" ]
+ 
+3) Create a requirements.txt file
+ 
+Flask==3.1.0
+ 
+ 4)
+ docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+5) create .gitlab-ci.yml
+# GitLab CI/CD Pipeline for Shell Runner
+# This pipeline builds a Docker image from the repository
+
+variables:
+  DOCKERFILE: "dockerfile"
+  REGISTRY: "localhost:5000"
+  IMAGE_NAME: "myimage"
+  IMAGE_TAG: "latest"
+
+stages:
+  - build
+
+# Build and push Docker image
+build_docker_image:
+  stage: build
+  tags:
+    - myrunner
+  script:
+    - echo "Building Docker image..."
+    - docker build -f ${DOCKERFILE} -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
+    - echo "Pushing Docker image to registry..."
+    - docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+  only:
+    - main
+
+6)#Test the image is created
+docker pull localhost:5000/myimage:latest
+
+http://localhost:5000/v2/_catalog
+
+
+Lab 13 (gitlab)
+
+image: debian:latest
+
+stages:
+  - prepare
+  - test
+  - deploy
+
+before_script:
+  - echo "Global setup starting..."
+  - apt-get update -y
+  - apt-get install -y curl
+  - echo "Global setup done."
+  - date
+
+prepare-job:
+  stage: prepare
+  script:
+    - echo "Preparing environment..."
+    - echo "Sample artifact data" > mydata.txt
+  artifacts:
+    paths:
+      - mydata.txt
+
+unit-tests:
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - cat mydata.txt
+  dependencies:
+    - prepare-job
+
+integration-tests:
+  stage: test
+  script:
+    - echo "Running integration tests..."
+    - cat mydata.txt
+  dependencies:
+    - prepare-job
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+    - cat mydata.txt
+  dependencies:
+    - prepare-job
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: always
+---------
+
+03/12
+
+Lab1
+
+-------------------
+ 
+.gitlab-ci.yml
+stages:
+  - build
+  - scan
+variables:
+  IMAGE_TAG: "latest"
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
+# Step 1: Build and push image
+docker_build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build -t "$IMAGE_NAME" .
+    - docker push "$IMAGE_NAME"
+# Step 2: Trivy scan (remote image, no Docker required here)
+trivy_scan:
+  stage: scan
+  image: docker:latest
+  before_script:
+    - apk add --no-cache curl bash
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin "$CI_REGISTRY"
+  script:
+    - trivy image  "$IMAGE_NAME"
+
+
+Lab2:(selfhosted)
+    
+
+variables:
+  DOCKERFILE: "dockerfile"
+  REGISTRY: "localhost:5000"
+  IMAGE_NAME: "myimage"
+  IMAGE_TAG: "latest"
+  FULL_IMAGE_NAME: "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+stages:
+  - build
+  - scan
+
+# Build and push Docker image 
+build_docker_image:
+  stage: build
+  tags:
+    - myrunner
+  script:
+    - echo "Building Docker image..."
+    - docker build -f ${DOCKERFILE} -t ${FULL_IMAGE_NAME} .
+    - echo "Pushing Docker image to registry..."
+    - docker push ${FULL_IMAGE_NAME}
+  only:
+    - main
+# Trivy vulnerability scan
+trivy_scan:
+  stage: scan
+  tags:
+    - myrunner
+  before_script:
+    - echo "Installing Trivy..."
+    - apk add --no-cache curl bash || (apt-get update && apt-get install -y curl)
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+  script:
+    - echo "Scanning Docker image for vulnerabilities..."
+    - trivy image --severity HIGH,CRITICAL ${FULL_IMAGE_NAME}
+  allow_failure: true
+  only:
+    - main
+    
+    Lab3: Try Lab2 on docker runner
+
+v10.33.197.8
+----Lab4---
+
+sudo su 
+ 
+#!/bin/bash
+# For AMD64 / x86_64
+[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+chmod +x ./kind
+sudo cp ./kind /usr/local/bin/kind
+rm -rf kind
+ 
+vi config.yaml
+#copy and paste below lines in config.yaml till line 645
+# 4 node (3 workers) cluster config
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  image: kindest/node:v1.28.0
+- role: worker
+  image: kindest/node:v1.28.0
+- role: worker
+  image: kindest/node:v1.28.0
+- role: worker
+  image: kindest/node:v1.28.0
+ 
+kind create cluster --config=config.yaml
+ 
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+ 
+ 
+kubectl get nodes
+
+ 
+-->cicd project-->runner (gitlab.com)
+name-->shellkub
+ register runner-->shell
+ 
+gitlab-runner run
+ 
+1) Generate token
+base64 ~/.kube/config | tr -d '\n'
+2) Upload to setting-->cicd-->variable
+key: KUBECONFIG_CONTENT
+value: copy step1 value
+
+Create a repo directory : k8s
+vi deployment.yml
+ 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-app
+  labels:
+    app: java-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-app
+  template:
+    metadata:
+      labels:
+        app: java-app
+    spec:
+      containers:
+        - name: java-app-container
+          image: ${IMAGE_NAME}
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+    
+
+.gitlab-ci.yml
+
+variables:
+  DOCKERFILE: "dockerfile"
+  REGISTRY: "10.33.197.8:5000"
+  IMAGE_NAME: "myimage"
+  IMAGE_TAG: "latest"
+  FULL_IMAGE_NAME: "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+  KUBE_NAMESPACE: "default"
+  DEPLOYMENT_FILE: "k8s/deployment.yml"
+stages:
+  - build
+  - scan
+  - deploy
+# Build and push Docker image
+build_docker_image:
+  stage: build
+  image: docker:latest
+  tags:
+    - test
+  services:
+    - name: docker:dind
+      command: ["--tls=false", "--insecure-registry=10.33.197.8:5000", "--dns=8.8.8.8"]
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    DOCKER_TLS_CERTDIR: ""
+    REGISTRY_URL: "10.33.197.8:5000"
+    FULL_IMAGE_NAME: "${REGISTRY_URL}/myimage"
+  script:
+    - echo "Building Docker image..."
+    - docker build -f ${DOCKERFILE} -t ${FULL_IMAGE_NAME} .
+    - echo "Pushing Docker image to registry..."
+    - docker push ${FULL_IMAGE_NAME}
+  only:
+    - main
+# Trivy vulnerability scan
+trivy_scan:
+  stage: scan
+  tags:
+    - shared
+  before_script:
+    - echo "Installing Trivy..."
+    - apk add --no-cache curl bash || (apt-get update && apt-get install -y curl)
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+  script:
+    - echo "Scanning Docker image for vulnerabilities..."
+    - trivy image --severity HIGH,CRITICAL ${FULL_IMAGE_NAME}
+  allow_failure: true
+  only:
+    - main
+# Deploy to Kubernetes
+deploy_to_kubernetes:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  tags:
+    - test
+  before_script:
+    - echo "Configuring kubectl..."
+    - mkdir -p ~/.kube
+    - echo "${KUBECONFIG_CONTENT}" | base64 -d > ~/.kube/config
+    - kubectl version --client
+  script:
+    - echo "Deploying to Kubernetes namespace ${KUBE_NAMESPACE}..."
+    - echo "Replacing image name in deployment file..."
+    - sed -i "s|\${IMAGE_NAME}|${FULL_IMAGE_NAME}|g" ${DEPLOYMENT_FILE}
+    - cat ${DEPLOYMENT_FILE}
+    - kubectl apply -f ${DEPLOYMENT_FILE} -n ${KUBE_NAMESPACE}
+    - echo "Deployment completed successfully!"
+    - kubectl get pods -n ${KUBE_NAMESPACE} -l app=java-app
+  only:
+    - main
+    
+    https://docs.gitlab.com/ci/docker/using_docker_build/
+    
+docker run -d \
+  -p 5000:5000 \
+  --restart=always \
+  --name registry \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  registry:2
+
+    
+    dockerfile modify the image: public.ecr.aws/docker/library/python:3.9-alpine
+ 
+ cicd: gitlab.com lab
+ 
+ Create a repo directory : k8s
+vi deployment.yml
+ 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-app
+  labels:
+    app: java-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-app
+  template:
+    metadata:
+      labels:
+        app: java-app
+    spec:
+      containers:
+        - name: java-app-container
+          image: ${IMAGE_NAME}
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: gitlab-regcred
+ 
+ 
+Modify your .gitlab-ci.yml
+ 
+ 
+# Step 1: Build and push image
+stages:
+  - build
+  - scan
+  - deploy
+variables:
+  IMAGE_TAG: "latest"
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
+  KUBECONFIG: "$CI_PROJECT_DIR/kubeconfig.yaml"
+# Step 1: Build and push image
+docker_build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build -t "$IMAGE_NAME" .
+    - docker push "$IMAGE_NAME"
+# Step 2: Trivy scan (remote image)
+trivy_scan:
+  stage: scan
+  image: docker:latest
+  before_script:
+    - apk add --no-cache curl bash
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin "$CI_REGISTRY"
+  script:
+    - trivy image "$IMAGE_NAME"
+#Step 3: Deploy to kind cluster using kubectl
+deploy_to_kind:
+  stage: deploy
+  tags:
+    - shellkub
+  variables:
+    KUBECONFIG: "$CI_PROJECT_DIR/kubeconfig.yaml"
+  before_script:
+    - echo "$KUBECONFIG_CONTENT" | base64 -d > kubeconfig
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - kubectl --kubeconfig=kubeconfig get nodes
+    - kubectl --kubeconfig=kubeconfig delete deployment java-app --ignore-not-found
+    - kubectl --kubeconfig=kubeconfig delete secret gitlab-regcred --ignore-not-found
+    - kubectl --kubeconfig=kubeconfig create secret docker-registry gitlab-regcred  --docker-server="$CI_REGISTRY" --docker-username="$CI_REGISTRY_USER"   --docker-password="$CI_REGISTRY_PASSWORD"
+    # Replace placeholder with actual image value
+    - envsubst < k8s/deployment.yaml > k8s/deployment-rendered.yaml
+    # Apply rendered manifest
+    - kubectl --kubeconfig=kubeconfig apply -f k8s/deployment-rendered.yaml
+    - kubectl --kubeconfig=kubeconfig get pods
+  
+ 
+ Java project: .gitlab-ci.yml
+ 
+image: maven:3.9.6-eclipse-temurin-11
+stages:
+  - build
+  - sonarcloud
+  - publish
+variables:
+  SONAR_PROJECT_KEY: "amitow1234_test"
+  SONAR_ORGANIZATION: "amitopenwriteup"
+  SONAR_TOKEN: ""
+  SONAR_HOST_URL: "https://sonarcloud.io"
+build:
+  stage: build
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/
+      - src/
+    expire_in: 1 hour
+sonar_scan:
+  stage: sonarcloud
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update && apt-get install -y unzip wget openjdk-11-jdk
+    - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+    - unzip sonar-scanner-cli-5.0.1.3006-linux.zip
+  script:
+    - ./sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY
+        -Dsonar.organization=$SONAR_ORGANIZATION
+        -Dsonar.qualitygate.wait=true
+        -Dsonar.qualitygate.timeout=300
+        -Dsonar.sources=src/main/java/
+        -Dsonar.java.binaries=target/classes
+        -Dsonar.host.url=$SONAR_HOST_URL
+        -Dsonar.login=$SONAR_TOKEN
+publish:
+  stage: publish
+  script:
+    - echo "Publishing step placeholder. Add deployment or artifact upload here."
+    
+    
+
+#https://gitlab.com/ow1435929/sharedlibrary1.git
+stages:
+  - build
+  - sonarcloud
+  - publish
+
+variables:
+  SONAR_PROJECT_KEY: "myproj23"
+  SONAR_ORGANIZATION: "amitow123"
+  SONAR_TOKEN: "780336658825aea2f71e98579b0a4a9a89e8a57c"
+  SONAR_HOST_URL: "https://sonarcloud.io"
+
+build:
+  stage: build
+  image: maven:3.9.6-eclipse-temurin-11
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/
+      - src/
+
+run-sonar-child:
+  stage: sonarcloud
+  trigger:
+    include: 
+      - local: '/ci-templates/.gitlab-ci-sonar.yml'
+    strategy: depend  # optional, ensures parent waits for child pipeline to finish
+
+publish:
+  stage: publish
+  script:
+    - echo "Deploy step placeholder"
+    
+
+
+# ci-templates/.gitlab-ci-sonar.yml
+sonar_scan_template:
+  stage: sonarcloud
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update && apt-get install -y unzip wget openjdk-11-jdk
+    - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+    - unzip sonar-scanner-cli-5.0.1.3006-linux.zip
+  script:
+    - ./sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY
+        -Dsonar.organization=$SONAR_ORGANIZATION
+        -Dsonar.qualitygate.wait=true
+        -Dsonar.qualitygate.timeout=300
+        -Dsonar.sources=src/main/java/
+        -Dsonar.java.binaries=target/classes
+        -Dsonar.host.url=$SONAR_HOST_URL
+        -Dsonar.login=$SONAR_TOKEN
