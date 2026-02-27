@@ -239,6 +239,12 @@ kubectl get pods -n flagger-system
 ## 2.1 Deploy Sample Application
 
 ```yaml
+#clusters/my-cluster/apps/team-alpha/nse.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-alpha
 # clusters/my-cluster/apps/team-alpha/podinfo-deployment.yaml
 ---
 apiVersion: apps/v1
