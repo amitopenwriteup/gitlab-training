@@ -198,7 +198,7 @@ spec:
 
 ## 1.5 Flux Kustomization
 
-📄 `fleet-infra/clusters/my-cluster/apps/my-app/kustomization.yaml`
+📄 `fleet-infra/clusters/my-cluster/apps/my-app/flux-ks.yaml
 
 ```yaml
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -217,6 +217,16 @@ spec:
 ```
 
 ---
+#fleet-infra/clusters/my-cluster/apps/my-app/kustomization.yaml
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+kind: Kustomization
+
+resources:
+
+  - flux-ks.yaml
+
 
 ## 1.6 Image Automation
 
