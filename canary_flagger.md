@@ -174,7 +174,7 @@ spec:
 ### Commit & Verify
 
 ```bash
-git add clusters/my-cluster/infrastructure/sources/flagger.yaml
+git add .
 git commit -m "feat: add flagger HelmRepository source"
 git push
 
